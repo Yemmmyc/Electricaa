@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Clone Code') {
             steps {
-                git 'https://github.com/youruser/your-repo.git'
+                git 'https://github.com/Yemmmyc/Electricaa.git'
             }
         }
 
