@@ -6,7 +6,7 @@ pipeline {
         ECR_REPO = '194719009061.dkr.ecr.us-east-1.amazonaws.com/my-app'
         IMAGE_TAG = "build-${env.BUILD_NUMBER}"
         EC2_USER = 'ec2-user'
-        EC2_HOST = 'ec2-54-89-165-214.compute-1.amazonaws.com'   // Updated to real hostname
+        EC2_HOST = 'ec2-54-89-165-214.compute-1.amazonaws.com'   // Your real hostname
         PRIVATE_KEY_PATH = 'C:/keys/Electricaa-key.pem' 
     }
 
@@ -57,10 +57,3 @@ pipeline {
         }
     }
 }
-
-        }
-    }
-}
-
-
-
