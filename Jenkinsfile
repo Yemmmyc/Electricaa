@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         AWS_DEFAULT_REGION = 'us-east-1'
-        ECR_REPO = '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app'
+        ECR_REPO = '194719009061.dkr.ecr.us-east-1.amazonaws.com/my-app'
         IMAGE_TAG = "build-${env.BUILD_NUMBER}"
         EC2_USER = 'ec2-user'
         EC2_HOST = 'ec2-xx-xx-xx-xx.compute-1.amazonaws.com'
