@@ -18,18 +18,20 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh """
-                docker build -t my-app:$IMAGE_TAG .
-                docker tag my-app:$IMAGE_TAG $ECR_REPO:$IMAGE_TAG
+                bat """
+                docker build -t my-app:%IMAGE_TAG% .
+                docker tag my-app:%IMAGE_TAG% %ECR_REPO%:%IMAGE_TAG%
                 """
             }
         }
 
         stage('Push to ECR') {
             steps {
-                sh """
-                aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPO
-                docker push $ECR_REPO:$IMAGE_TAG
+                bat """
+                for /f "tokens=* usebackq" %%p in (`aws ecr get-login-password --region %AWS_DEFAULT_REGION%`) do (
+                    echo %%p | docker login --username AWS --password-stdin %ECR_REPO%
+                )
+                docker push %ECR_REPO%:%IMAGE_TAG%
                 """
             }
         }
