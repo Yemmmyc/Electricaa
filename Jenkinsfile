@@ -11,25 +11,6 @@ pipeline {
     }
 
     stages {
-        stage('Fix PEM Permissions') {
-            steps {
-                powershell '''
-                $keyPath = "C:\\keys\\Electricaa-key.pem"
-
-                # Remove inherited permissions
-                icacls $keyPath /inheritance:r
-
-                # Grant read permission to current user
-                $user = $env:USERNAME
-                icacls $keyPath /grant:r "$user:R"
-
-                # Remove permissions for Users and Authenticated Users groups
-                icacls $keyPath /remove "Users"
-                icacls $keyPath /remove "Authenticated Users"
-                '''
-            }
-        }
-
         stage('Clone Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/Yemmmyc/Electricaa.git'
@@ -68,11 +49,15 @@ pipeline {
                 ssh -i %PRIVATE_KEY_PATH% -o StrictHostKeyChecking=no %EC2_USER%@%EC2_HOST% ^
                 "aws ecr get-login-password --region %AWS_DEFAULT_REGION% | docker login --username AWS --password-stdin %ECR_REPO% && ^
                 docker pull %ECR_REPO%:%IMAGE_TAG% && ^
-                docker stop my-app || rem && ^
-                docker rm my-app || rem && ^
+                docker stop my-app || true && ^
+                docker rm my-app || true && ^
                 docker run -d --name my-app -p 80:80 %ECR_REPO%:%IMAGE_TAG%"
                 """
             }
+        }
+    }
+}
+
         }
     }
 }
