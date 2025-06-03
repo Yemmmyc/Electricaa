@@ -42,20 +42,29 @@ pipeline {
             }
         }
 
+        stage('Test SSH Agent') {
+            steps {
+                sshagent(['ec2-ssh-key']) {
+                    bat 'ssh-add -l'
+                    bat 'ssh -o StrictHostKeyChecking=no %EC2_USER%@%EC2_HOST% echo "SSH Connection Successful"'
+                }
+            }
+        }
+
         stage('Deploy to EC2') {
             steps {
                 sshagent(['ec2-ssh-key']) {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << EOF
-                        aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPO
-                        docker pull $ECR_REPO:$IMAGE_TAG
-                        docker stop my-app || true
-                        docker rm my-app || true
-                        docker run -d --name my-app -p 80:80 $ECR_REPO:$IMAGE_TAG
-                    EOF
+                    bat """
+                    ssh -o StrictHostKeyChecking=no %EC2_USER%@%EC2_HOST% ^
+                        "aws ecr get-login-password --region %AWS_DEFAULT_REGION% | docker login --username AWS --password-stdin %ECR_REPO% &&
+                        docker pull %ECR_REPO%:%IMAGE_TAG% &&
+                        docker stop my-app || exit 0 &&
+                        docker rm my-app || exit 0 &&
+                        docker run -d --name my-app -p 80:80 %ECR_REPO%:%IMAGE_TAG%"
                     """
                 }
             }
         }
     }
 }
+
