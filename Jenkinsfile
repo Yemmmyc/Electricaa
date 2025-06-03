@@ -1,4 +1,4 @@
-pipeline { 
+pipeline {
     agent any
 
     environment {
@@ -6,11 +6,26 @@ pipeline {
         ECR_REPO = '194719009061.dkr.ecr.us-east-1.amazonaws.com/my-app'
         IMAGE_TAG = "build-${env.BUILD_NUMBER}"
         EC2_USER = 'ec2-user'
-        EC2_HOST = 'ec2-54-89-165-214.compute-1.amazonaws.com'   // Your real hostname
-        PRIVATE_KEY_PATH = 'C:/keys/Electricaa-key.pem' 
+        EC2_HOST = 'ec2-54-89-165-214.compute-1.amazonaws.com'
+        PRIVATE_KEY_PATH = 'C:/keys/Electricaa-key.pem'
+        JENKINS_USER = 'IT-WORKSTATION' // Your Jenkins user account
     }
 
     stages {
+        stage('Fix PEM Permissions') {
+            steps {
+                powershell """
+                    \$Path = '${PRIVATE_KEY_PATH}'
+                    \$JenkinsUser = '${JENKINS_USER}'
+
+                    icacls \$Path /inheritance:r
+                    icacls \$Path /remove "Users"
+                    icacls \$Path /remove "Authenticated Users"
+                    icacls \$Path /grant:r "\$JenkinsUser:R"
+                """
+            }
+        }
+
         stage('Clone Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/Yemmmyc/Electricaa.git'
@@ -34,9 +49,10 @@ pipeline {
                     aws configure set aws_secret_access_key %AWS_SECRET_ACCESS_KEY%
                     aws configure set default.region %AWS_DEFAULT_REGION%
 
-                    for /f "tokens=* usebackq" %%p in (`aws ecr get-login-password --region %AWS_DEFAULT_REGION%`) do (
+                    for /f "tokens=*" %%p in ('aws ecr get-login-password --region %AWS_DEFAULT_REGION%') do (
                         echo %%p | docker login --username AWS --password-stdin %ECR_REPO%
                     )
+
                     docker push %ECR_REPO%:%IMAGE_TAG%
                     """
                 }
@@ -49,11 +65,12 @@ pipeline {
                 ssh -i %PRIVATE_KEY_PATH% -o StrictHostKeyChecking=no %EC2_USER%@%EC2_HOST% ^
                 "aws ecr get-login-password --region %AWS_DEFAULT_REGION% | docker login --username AWS --password-stdin %ECR_REPO% && ^
                 docker pull %ECR_REPO%:%IMAGE_TAG% && ^
-                docker stop my-app || true && ^
-                docker rm my-app || true && ^
+                docker stop my-app > /dev/null 2>&1 || true && ^
+                docker rm my-app > /dev/null 2>&1 || true && ^
                 docker run -d --name my-app -p 80:80 %ECR_REPO%:%IMAGE_TAG%"
                 """
             }
         }
     }
 }
+
