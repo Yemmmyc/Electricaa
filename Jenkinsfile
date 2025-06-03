@@ -1,4 +1,4 @@
-pipeline {
+pipeline { 
     agent any
 
     environment {
@@ -6,8 +6,8 @@ pipeline {
         ECR_REPO = '194719009061.dkr.ecr.us-east-1.amazonaws.com/my-app'
         IMAGE_TAG = "build-${env.BUILD_NUMBER}"
         EC2_USER = 'ec2-user'
-        EC2_HOST = 'ec2-xx-xx-xx-xx.compute-1.amazonaws.com'
-        PRIVATE_KEY_PATH = 'C:/Users/IT-WORKSTATION/Downloads/Electricaa-key.pem' // <-- Update this path!
+        EC2_HOST = 'ec2-54-89-165-214.compute-1.amazonaws.com'   // Updated to real hostname
+        PRIVATE_KEY_PATH = 'C:/Users/IT-WORKSTATION/Downloads/Electricaa-key.pem' 
     }
 
     stages {
@@ -47,10 +47,10 @@ pipeline {
             steps {
                 bat """
                 ssh -i %PRIVATE_KEY_PATH% -o StrictHostKeyChecking=no %EC2_USER%@%EC2_HOST% ^
-                "aws ecr get-login-password --region %AWS_DEFAULT_REGION% | docker login --username AWS --password-stdin %ECR_REPO% &&
-                docker pull %ECR_REPO%:%IMAGE_TAG% &&
-                docker stop my-app || exit 0 &&
-                docker rm my-app || exit 0 &&
+                "aws ecr get-login-password --region %AWS_DEFAULT_REGION% | docker login --username AWS --password-stdin %ECR_REPO% && ^
+                docker pull %ECR_REPO%:%IMAGE_TAG% && ^
+                docker stop my-app || true && ^
+                docker rm my-app || true && ^
                 docker run -d --name my-app -p 80:80 %ECR_REPO%:%IMAGE_TAG%"
                 """
             }
