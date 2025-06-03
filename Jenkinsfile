@@ -7,6 +7,7 @@ pipeline {
         IMAGE_TAG = "build-${env.BUILD_NUMBER}"
         EC2_USER = 'ec2-user'
         EC2_HOST = 'ec2-xx-xx-xx-xx.compute-1.amazonaws.com'
+        PRIVATE_KEY_PATH = 'C:/Users/IT-WORKSTATION/Downloads/Electricaa-key.pem' // <-- Update this path!
     }
 
     stages {
@@ -42,29 +43,19 @@ pipeline {
             }
         }
 
-        stage('Test SSH Agent') {
-            steps {
-                sshagent(['ec2-ssh-key']) {
-                    bat 'ssh-add -l'
-                    bat 'ssh -o StrictHostKeyChecking=no %EC2_USER%@%EC2_HOST% echo "SSH Connection Successful"'
-                }
-            }
-        }
-
         stage('Deploy to EC2') {
             steps {
-                sshagent(['ec2-ssh-key']) {
-                    bat """
-                    ssh -o StrictHostKeyChecking=no %EC2_USER%@%EC2_HOST% ^
-                        "aws ecr get-login-password --region %AWS_DEFAULT_REGION% | docker login --username AWS --password-stdin %ECR_REPO% &&
-                        docker pull %ECR_REPO%:%IMAGE_TAG% &&
-                        docker stop my-app || exit 0 &&
-                        docker rm my-app || exit 0 &&
-                        docker run -d --name my-app -p 80:80 %ECR_REPO%:%IMAGE_TAG%"
-                    """
-                }
+                bat """
+                ssh -i %PRIVATE_KEY_PATH% -o StrictHostKeyChecking=no %EC2_USER%@%EC2_HOST% ^
+                "aws ecr get-login-password --region %AWS_DEFAULT_REGION% | docker login --username AWS --password-stdin %ECR_REPO% &&
+                docker pull %ECR_REPO%:%IMAGE_TAG% &&
+                docker stop my-app || exit 0 &&
+                docker rm my-app || exit 0 &&
+                docker run -d --name my-app -p 80:80 %ECR_REPO%:%IMAGE_TAG%"
+                """
             }
         }
     }
 }
+
 
