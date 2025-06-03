@@ -7,7 +7,7 @@ pipeline {
         IMAGE_TAG = "build-${env.BUILD_NUMBER}"
         EC2_USER = 'ec2-user'
         EC2_HOST = 'ec2-54-89-165-214.compute-1.amazonaws.com'   // Updated to real hostname
-        PRIVATE_KEY_PATH = 'C:/Users/IT-WORKSTATION/Downloads/Electricaa-key.pem' 
+        PRIVATE_KEY_PATH = 'C:/keys/Electricaa-key.pem'
     }
 
     stages {
