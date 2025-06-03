@@ -8,24 +8,9 @@ pipeline {
         EC2_USER = 'ec2-user'
         EC2_HOST = 'ec2-54-89-165-214.compute-1.amazonaws.com'
         PRIVATE_KEY_PATH = 'C:/keys/Electricaa-key.pem'
-        JENKINS_USER = 'IT-WORKSTATION' // Your Jenkins user account
     }
 
     stages {
-        stage('Fix PEM Permissions') {
-            steps {
-                powershell """
-                    \$Path = '${PRIVATE_KEY_PATH}'
-                    \$JenkinsUser = '${JENKINS_USER}'
-
-                    icacls \$Path /inheritance:r
-                    icacls \$Path /remove "Users"
-                    icacls \$Path /remove "Authenticated Users"
-                    icacls \$Path /grant:r "\$JenkinsUser:R"
-                """
-            }
-        }
-
         stage('Clone Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/Yemmmyc/Electricaa.git'
@@ -73,4 +58,5 @@ pipeline {
         }
     }
 }
+
 
