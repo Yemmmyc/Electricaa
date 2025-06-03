@@ -1,0 +1,30 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-app-electricaa-k8s
+spec:
+  replicas: 4  # Number of pods to run
+  selector:
+    matchLabels:
+      app: django-electricaa
+  template:
+    metadata:
+      labels:
+        app: django-electricaa
+    spec:
+      containers:
+      - name: django-electricaa-container
+        image: successwise1/electricaa:latest  # Replace with your built image
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - mountPath: /code
+          name: code-volume
+        env:
+        - name: DEBUG
+          value: "True"
+      volumes:
+      - name: code-volume
+        hostPath:
+          path: /mnt/c/Users/Success/OneDrive/Desktop/mariapython/myproject
