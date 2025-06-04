@@ -11,6 +11,13 @@ pipeline {
     }
 
     stages {
+        stage('Clean Workspace') {
+            steps {
+                // Delete Electricaa folder if it exists to avoid git clone errors
+                bat 'rmdir /s /q Electricaa || echo Electricaa folder not present, continuing'
+            }
+        }
+
         stage('Clone Code') {
             steps {
                 bat 'git clone -b main https://github.com/Yemmmyc/Electricaa.git'
@@ -59,4 +66,5 @@ pipeline {
         }
     }
 }
+
 
