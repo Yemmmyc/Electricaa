@@ -1,4 +1,4 @@
-pipeline {
+pipeline { 
     agent any
 
     environment {
@@ -7,7 +7,7 @@ pipeline {
         IMAGE_TAG = "build-${env.BUILD_NUMBER}"
         EC2_USER = 'ec2-user'
         EC2_HOST = 'ec2-54-89-165-214.compute-1.amazonaws.com'
-        PRIVATE_KEY_PATH = 'C:/keys/Electricaa-key.pem'
+        PRIVATE_KEY_PATH = 'C:/keys/Electricaa-key.pem' 
     }
 
     stages {
@@ -34,7 +34,9 @@ pipeline {
                     aws configure set aws_secret_access_key %AWS_SECRET_ACCESS_KEY%
                     aws configure set default.region %AWS_DEFAULT_REGION%
 
-                    aws ecr get-login-password --region %AWS_DEFAULT_REGION% | docker login --username AWS --password-stdin %ECR_REPO%
+                    for /f "tokens=* usebackq" %%p in (`aws ecr get-login-password --region %AWS_DEFAULT_REGION%`) do (
+                        echo %%p | docker login --username AWS --password-stdin %ECR_REPO%
+                    )
                     docker push %ECR_REPO%:%IMAGE_TAG%
                     """
                 }
@@ -45,16 +47,17 @@ pipeline {
             steps {
                 bat """
                 ssh -i %PRIVATE_KEY_PATH% -o StrictHostKeyChecking=no %EC2_USER%@%EC2_HOST% ^
-                "aws ecr get-login-password --region %AWS_DEFAULT_REGION% | docker login --username AWS --password-stdin %ECR_REPO% && ^
-                docker pull %ECR_REPO%:%IMAGE_TAG% && ^
-                docker stop my-app || exit 0 && ^
-                docker rm my-app || exit 0 && ^
-                docker run -d --name my-app -p 80:80 %ECR_REPO%:%IMAGE_TAG%"
+                "aws ecr get-login-password --region %AWS_DEFAULT_REGION% | docker login --username AWS --password-stdin %ECR_REPO% ^
+                && docker pull %ECR_REPO%:%IMAGE_TAG% ^
+                && docker stop my-app || exit 0 ^
+                && docker rm my-app || exit 0 ^
+                && docker run -d --name my-app -p 80:80 %ECR_REPO%:%IMAGE_TAG%"
                 """
             }
         }
     }
 }
+
 
 
 
