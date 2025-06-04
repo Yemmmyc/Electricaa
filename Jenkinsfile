@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Clone Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/Yemmmyc/Electricaa.git'
+                bat 'git clone -b main https://github.com/Yemmmyc/Electricaa.git'
             }
         }
 
@@ -44,6 +44,10 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 bat """
+                powershell -Command "icacls '%PRIVATE_KEY_PATH%' /reset"
+                powershell -Command "icacls '%PRIVATE_KEY_PATH%' /inheritance:r"
+                powershell -Command "icacls '%PRIVATE_KEY_PATH%' /grant:r '%USERNAME%:R'"
+
                 ssh -i %PRIVATE_KEY_PATH% -o StrictHostKeyChecking=no %EC2_USER%@%EC2_HOST% ^
                 "aws ecr get-login-password --region %AWS_DEFAULT_REGION% | docker login --username AWS --password-stdin %ECR_REPO% && ^
                 docker pull %ECR_REPO%:%IMAGE_TAG% && ^
@@ -55,3 +59,4 @@ pipeline {
         }
     }
 }
+
